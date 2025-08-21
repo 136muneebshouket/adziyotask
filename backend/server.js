@@ -41,21 +41,24 @@ app.post("/signup", async (req, res) => {
   try {
     // Generate a salt and hash the password
     // The higher the saltRounds, the more secure but slower. 10-12 is common.
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
       email: email,
-      password: hashedPassword,
+      password: password,
     });
-    console.log(user);
 
     // In a real application, you would save email and hashedPassword to a database
-    console.log(
-      `User registered: ${email}, Hashed Password: ${hashedPassword}`
-    );
+
     res.status(201).send("User registered successfully (conceptually)");
   } catch (error) {
-    console.error("Error during registration:", error);
+    let msg = null;
+    if (error.name === "SequelizeValidationError") {
+      msg = error.errors.map((e) => `${e.path}: ${e?.message}`);
+    }
+
+    let message = msg || error.message;
+    console.error("Error during registration:", message);
     res.status(500).send("Registration failed (conceptually)");
   }
 });
